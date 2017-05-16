@@ -7,7 +7,7 @@
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <ion-list>
-      <ion-item ng-repeat="message in messages">
+      <ion-item ng-repeat="message in messages | reverse">
         {{message.message}}
       </ion-item>
     </ion-list>
