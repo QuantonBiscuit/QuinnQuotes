@@ -40,49 +40,65 @@ angular.module('starter', ['ionic', 'firebase'])
         url: '/signin',
         templateUrl: 'templates/signin.html',
         controller: 'LoginCtrl'
-      });
+      }).state('chat', {
+        url: '/chat',
+        templateUrl: 'templates/chat.html',
+        controller: 'ChatCtrl'
+    });
 
 
     $urlRouterProvider.otherwise("/");
 
   })
 
-  .controller('LoginCtrl', function($scope, $state) {
+  .controller('LoginCtrl', function($scope, $state, $location) {
 
     $scope.data = {};
 
     $scope.signupEmail = function(){
 
-      var ref = new Firebase("https://<YOUR-FIREBASE-APP>.firebaseio.com");
-
-      ref.createUser({
-        email    : $scope.data.email,
-        password : $scope.data.password
-      }, function(error, userData) {
-        if (error) {
-          console.log("Error creating user:", error);
-        } else {
-          console.log("Successfully created user account with uid:", userData.uid);
-        }
+      firebase.auth().createUserWithEmailAndPassword($scope.data.email, $scope.data.password).catch(function(error) {
+        // TODO: Handle error
+        console.log(error.code);
+        console.log(error.message);
       });
+
+      $location.path('/chat');
 
     };
 
     $scope.loginEmail = function(){
 
-      var ref = new Firebase("https://<YOUR-FIREBASE-APP>.firebaseio.com");
+      console.log($scope.data.email);
+      console.log($scope.data.password);
 
-      ref.authWithPassword({
-        email    : $scope.data.email,
-        password : $scope.data.password
-      }, function(error, authData) {
-        if (error) {
-          console.log("Login Failed!", error);
-        } else {
-          console.log("Authenticated successfully with payload:", authData);
-        }
+      firebase.auth().signInWithEmailAndPassword($scope.data.email, $scope.data.password).catch(function(error) {
+        // TODO: Handle error
       });
 
+      $location.path('/chat');
     };
 
+  })
+
+  .controller('ChatCtrl', function ($scope, $state, $timeout) {
+
+      $scope.messages = [];
+
+      var chatsRef = firebase.database().ref("/messages/");
+      chatsRef.on('child_added', function (message) {
+        $timeout(function () {
+          $scope.messages.push(message.val());
+        });
+      });
+
+
+  })
+
+  .filter('reverse', function() {
+    return function(items) {
+      return angular.isArray(items)? items.slice().reverse() : [];
+    };
   });
+
+
